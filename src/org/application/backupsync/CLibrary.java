@@ -1,13 +1,11 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+    Copyright (C) 2011 Enrico Bianchi (enrico.bianchi@gmail.com)
+    Project       BackupSYNC
+    Description   A backup system
+    License       GPL version 2 (see GPL.txt for details)
  */
-package org.application.backupsync;
 
-/**
- *
- * @author ebianchi
- */
+package org.application.backupsync;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
@@ -23,4 +21,3 @@ public interface CLibrary extends Library {
     public int stat(String path, StatStructure stat);
 
 }
-
