@@ -7,8 +7,7 @@
 
 package org.application.backupsync.server;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -16,9 +15,19 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.log4j.Appender;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.ini4j.Wini;
 
 public class Main {
+    public static final String VERSION = "1.0";
+    public static Logger logger = Logger.getLogger("BackupSYNC");
+
     private Options opts;
+    private Wini cfg;
 
     public Main() {
         this.opts = new Options();
@@ -36,6 +45,26 @@ public class Main {
         
     }
     
+    /**
+     * Create log via log4j
+     */
+    private void setLog() {
+        Appender appender;
+        
+        try {
+            appender = new FileAppender(new PatternLayout("%d %-5p %c - %m%n"),
+                                        this.cfg.get("general", "log_file"));
+            Main.logger.addAppender(appender);
+            Main.logger.setLevel(Level.toLevel(this.cfg.get("general", "log_level")));
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
+            System.exit(2);
+        } catch (SecurityException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
+            System.exit(2);
+        }
+    }
+
     public void printHelp() {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("BackupSYNC", this.opts);
@@ -62,7 +91,7 @@ public class Main {
             
             
         } catch (ParseException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
         }
     }
     
