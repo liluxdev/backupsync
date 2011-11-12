@@ -9,8 +9,6 @@ package org.application.backupsync.client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -18,6 +16,8 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.application.backupsync.client.listener.Serve;
 
 public class Main {
@@ -63,9 +63,9 @@ public class Main {
         try {
             serve.go();
         } catch (UnknownHostException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
         }
     }
     
@@ -77,10 +77,10 @@ public class Main {
             m.go(args);
         } catch (ParseException ex) {
             System.err.println("Error when passing command: " + ex.getMessage());
-            System.exit(1);
+            System.exit(2);
         } catch (ClassCastException ex) {
             System.err.println("Port not valid");
-            System.exit(2);
+            System.exit(3);
         }
     }
 }

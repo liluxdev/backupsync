@@ -7,6 +7,7 @@
 
 package org.application.backupsync.server;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -23,11 +24,12 @@ import org.apache.log4j.PatternLayout;
 import org.ini4j.Wini;
 
 public class Main {
+    private Options opts;
+    private String mode;
+    private Wini cfg;
+    
     public static final String VERSION = "1.0";
     public static Logger logger = Logger.getLogger("BackupSYNC");
-
-    private Options opts;
-    private Wini cfg;
 
     public Main() {
         this.opts = new Options();
@@ -37,10 +39,11 @@ public class Main {
                 .withDescription("Use the specified configuration file")
                 .hasArg()
                 .withArgName("CFGFILE")
-                .create()
+                .create("c")
         );
         this.opts.addOption("H", false, "Hourly backup is executed");
         this.opts.addOption("D", false, "Daily backup is executed");
+        this.opts.addOption("W", false, "Weekly backup is executed");
         this.opts.addOption("M", false, "Monthly backup is executed");
         
     }
@@ -64,6 +67,20 @@ public class Main {
             System.exit(2);
         }
     }
+    
+    /**
+     * Open the configuration file
+     * @param cfgFile a configuration file
+     */
+    private void setCfg(String cfgFile) {
+        try {
+            this.cfg = new Wini();
+            this.cfg.load(new FileInputStream(cfgFile));
+        } catch (IOException ex) {
+            Main.logger.error(null, ex);
+            System.exit(1);
+        }
+    }
 
     public void printHelp() {
         HelpFormatter formatter = new HelpFormatter();
@@ -71,28 +88,38 @@ public class Main {
         System.exit(0);
     }
     
-    public void go(String[] args) {
+    public void go(String[] args) throws ParseException {
         CommandLine cmd;
         CommandLineParser parser;
         
         parser = new PosixParser();
-        
-        try {
-            cmd = parser.parse(this.opts, args);
-            
-            if (cmd.hasOption("h") || cmd.hasOption("help")) {
-                this.printHelp();
-            }
+        cmd = parser.parse(this.opts, args);
 
-            if (cmd.hasOption("cfg")) {
-                System.out.println("No configuration file defined (see help)");
-                System.exit(1);
-            }
-            
-            
-        } catch (ParseException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
+        if (cmd.hasOption("h") || cmd.hasOption("help")) {
+            this.printHelp();
         }
+
+        if (!cmd.hasOption("cfg")) {
+            System.out.println("No configuration file defined (see help)");
+            System.exit(1);
+        } else {
+            this.setCfg(cmd.getOptionValue("cfg"));
+        }
+
+        if (cmd.hasOption("H")) {
+            this.mode = "hour";
+        }
+        else if (cmd.hasOption("D")) {
+            this.mode = "day";
+        } else if (cmd.hasOption("W")) {
+            this.mode = "week";
+        }
+        else if (cmd.hasOption("M")) {
+            this.mode = "month";
+        }
+            
+        this.setLog();
+        Main.logger.info("BackupSYNC " + VERSION);
     }
     
     public static void main(String[] args) {
@@ -103,6 +130,12 @@ public class Main {
         if (args.length == 0) {
             m.printHelp();
         }
-        m.go(args);
+        
+        try {
+            m.go(args);
+        } catch (ParseException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
+            System.exit(2);
+        }
     }
 }
