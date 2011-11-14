@@ -24,34 +24,48 @@ public class Serve {
         this.port = port;
     }
     
-    public void go() throws UnknownHostException, JSONException, IOException {
+    public void go() throws UnknownHostException, IOException {
         Boolean exit;
         BufferedReader in;
         PrintWriter out;
         ServerSocket socket;
         Socket connection;
-        JSONObject json;
+        JSONObject inJSON, outJSON, errJSON;
         
         socket = new ServerSocket(port);
         exit = Boolean.FALSE;
         
         connection = socket.accept();
-        while (!exit) {
-            in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            out = new PrintWriter(connection.getOutputStream(), true);
+        
+        in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        out = new PrintWriter(connection.getOutputStream(), true);
+        outJSON = new JSONObject();
 
-            json = new JSONObject(in.readLine());
-            
-            if (json.getString("command").equals("exit")) {
-                exit = Boolean.TRUE;
-                in.close();
-                out.close();
-                connection.close();
-            } else if (json.getString("command").equals("list")) {
-                // TODO: write code for list files and directories (remember to calculate MD5 hash)
+        while (!exit) {
+            try {
+                inJSON = new JSONObject(in.readLine());
+
+                if (inJSON.getString("command").equals("exit")) {
+                    exit = Boolean.TRUE;
+                } else if (inJSON.getString("command").equals("list")) {
+                    outJSON.append("result", "ok");
+                    // TODO: write code for list files and directories (remember to calculate MD5 hash)
+                    out.println(outJSON.toString());
+                }
+            } catch (JSONException ex) {
+                try {
+                    errJSON = new JSONObject();
+                    errJSON.append("result", "error");
+                    errJSON.append("message", "Malformed command");
+                    out.println(errJSON.toString());
+                } catch (JSONException ex2) {
+                }
             }
-            
         }
+
+        in.close();
+        out.close();
+        connection.close();
         socket.close();
     }
 }
