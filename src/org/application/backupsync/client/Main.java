@@ -19,6 +19,7 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.application.backupsync.client.listener.Serve;
+import org.json.JSONException;
 
 public class Main {
     
@@ -63,6 +64,8 @@ public class Main {
         try {
             serve.go();
         } catch (UnknownHostException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
+        } catch (JSONException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);

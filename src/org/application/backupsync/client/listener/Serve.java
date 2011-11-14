@@ -14,6 +14,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Serve {
     private Integer port;
@@ -22,13 +24,13 @@ public class Serve {
         this.port = port;
     }
     
-    public void go() throws UnknownHostException, IOException {
+    public void go() throws UnknownHostException, JSONException, IOException {
         Boolean exit;
         BufferedReader in;
         PrintWriter out;
         ServerSocket socket;
         Socket connection;
-        String cmd;
+        JSONObject json;
         
         socket = new ServerSocket(port);
         exit = Boolean.FALSE;
@@ -38,14 +40,14 @@ public class Serve {
             in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             out = new PrintWriter(connection.getOutputStream(), true);
 
-            cmd = in.readLine();
+            json = new JSONObject(in.readLine());
             
-            if (cmd.equals("exit")) {
+            if (json.getString("command").equals("exit")) {
                 exit = Boolean.TRUE;
                 in.close();
                 out.close();
                 connection.close();
-            } else if (cmd.startsWith("list")) {
+            } else if (json.getString("command").equals("list")) {
                 // TODO: write code for list files and directories (remember to calculate MD5 hash)
             }
             
