@@ -13,12 +13,11 @@ import java.util.List;
  * @author javapractices.com
  * @author Alex Wong
  * @author anonymous user
+ * @see http://javapractices.com/topic/TopicAction.do;jsessionid=E8F22B53D2DB17BCFE5F61185055BB78?Id=68
  */
 
 /*
- * NOTE: I don't know what is the licence abuot this file. In doubt, I release
- *       this file under BSD licence
- *       Enrico
+ * This file is released under BSD licence
  */
 
 public final class FileListing {
