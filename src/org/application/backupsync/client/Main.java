@@ -7,6 +7,7 @@ License       GPL version 2 (see GPL.txt for details)
 package org.application.backupsync.client;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,11 +60,14 @@ public class Main {
         while (!exit) {
             try {
                 exit = serve.go();
+            } catch (BindException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                exit = Boolean.TRUE;
             } catch (UnknownHostException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             } catch (NullPointerException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

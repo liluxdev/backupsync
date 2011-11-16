@@ -49,7 +49,7 @@ public class Serve {
                 exit = Boolean.TRUE;
             } else if (inJSON.getString("command").equals("list")) {
                 // TODO: write code for list files and directories (remember to calculate MD5 hash)
-                outJSON = new FetchFile(inJSON.getString("directory")).getJSON();
+                outJSON = new FetchFile(inJSON.getString("directory"), inJSON.getBoolean("acl")).getJSON();
                 outJSON.append("result", "ok");
                 out.println(outJSON.toString());
             }
