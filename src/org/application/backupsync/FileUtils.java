@@ -7,6 +7,7 @@ License       GPL version 2 (see GPL.txt for details)
 package org.application.backupsync;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -18,6 +19,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.DosFileAttributes;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONException;
@@ -29,6 +32,36 @@ import org.json.JSONObject;
  */
 public class FileUtils {
 
+    public static String hashFile(String aFile) throws NoSuchAlgorithmException, IOException {
+        FileInputStream fis;
+        MessageDigest md;
+        String hex;
+        StringBuffer hexString;
+        byte[] dataBytes;
+        int nread;
+
+        md = MessageDigest.getInstance("MD5");
+        fis = new FileInputStream(aFile);
+        dataBytes = new byte[4096];
+        hexString = new StringBuffer();
+
+        nread = 0;
+        while ((nread = fis.read(dataBytes)) != -1) {
+            md.update(dataBytes, 0, nread);
+        };
+        byte[] mdbytes = md.digest();
+
+        for (int i = 0; i < mdbytes.length; i++) {
+            hex = Integer.toHexString(0xff & mdbytes[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
+    }
+    
     public static void validateDir(String directory) throws FileNotFoundException {
         File aDirectory;
 

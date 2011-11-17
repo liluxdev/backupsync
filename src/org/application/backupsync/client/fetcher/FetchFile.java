@@ -19,8 +19,10 @@ import org.json.JSONObject;
  *
  * @author ebianchi
  */
-public class FetchFile extends AbstractFetch {
+public class FetchFile {
     
+    private JSONObject json;
+
     public FetchFile(String aDirectory, Boolean acl) throws JSONException, IOException {
         this.json = new JSONObject();
         this.json = this.list(aDirectory, acl);
@@ -39,7 +41,7 @@ public class FetchFile extends AbstractFetch {
                 data = new JSONObject();
                 data.append("type", "file");
                 try {
-                    data.append("hash", this.hash(item.getAbsolutePath()));
+                    data.append("hash", FileUtils.hashFile(item.getAbsolutePath()));
                 } catch (NoSuchAlgorithmException ex) {
                     data.append("hash", "");
                 } catch (IOException ex) {
@@ -54,5 +56,9 @@ public class FetchFile extends AbstractFetch {
             result.append(item.getAbsolutePath(), data.toString());
         }
         return result;
+    }
+    
+    public JSONObject getJSON() {
+        return this.json;
     }
 }
