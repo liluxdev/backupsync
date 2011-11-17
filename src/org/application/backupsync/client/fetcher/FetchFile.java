@@ -10,6 +10,11 @@ package org.application.backupsync.client.fetcher;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributes;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.NoSuchAlgorithmException;
 import org.application.backupsync.WalkFileTree;
 import org.json.JSONException;
@@ -26,12 +31,35 @@ public class FetchFile extends AbstractFetch {
         this.json = this.list(aDirectory, acl);
     }
     
-    private JSONObject computeAttrs(File fileName) {
+    private JSONObject computeAttrs(File fileName) throws IOException, JSONException {
         JSONObject result;
+        BasicFileAttributes attr;
+        DosFileAttributes dosAttr;
+        PosixFileAttributes posixAttr;
 
         result = new JSONObject();
+        attr = Files.readAttributes(fileName.toPath(), BasicFileAttributes.class);
 
-        // TODO: write code to retrieve attributes
+        result.append("ctime", attr.creationTime().toMillis());
+        result.append("mtime", attr.lastModifiedTime().toMillis());
+        result.append("symlink", attr.isSymbolicLink());
+        result.append("size", attr.size());
+
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            dosAttr = Files.readAttributes(fileName.toPath(), DosFileAttributes.class);
+
+            result.append("dos:archive", dosAttr.isArchive());
+            result.append("dos:hidden", dosAttr.isHidden());
+            result.append("dos:readonly", dosAttr.isReadOnly());
+            result.append("dos:system", dosAttr.isSystem());
+        } else {
+            posixAttr = Files.readAttributes(fileName.toPath(), PosixFileAttributes.class);
+
+            result.append("posix:symlink", posixAttr.isSymbolicLink());
+            result.append("posix:owner", posixAttr.owner());
+            result.append("posix:group", posixAttr.group());
+            result.append("posix:permission", PosixFilePermissions.toString(posixAttr.permissions()));
+        }
 
         return result;
     }
