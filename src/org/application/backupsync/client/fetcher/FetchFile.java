@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import org.application.backupsync.FileUtils;
+import org.application.backupsync.PathName;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,7 +33,7 @@ public class FetchFile {
         JSONObject data;
 
         result = new JSONObject();
-        for (File item : FileUtils.walk(new File(directory))) {
+        for (File item : new PathName(new File(directory)).walk()) {
             if (item.isDirectory()) {
                 data = new JSONObject();
                 data.append("type", "directory");
@@ -41,15 +41,15 @@ public class FetchFile {
                 data = new JSONObject();
                 data.append("type", "file");
                 try {
-                    data.append("hash", FileUtils.hashFile(item));
+                    data.append("hash", new PathName((item)).hash());
                 } catch (NoSuchAlgorithmException | IOException ex) {
                     data.append("hash", "");
                 }
             }
-            data.append("attrs", FileUtils.computeAttrs(item));
+            data.append("attrs", new PathName(item).getAttrs());
             
             if (acl) {
-                data.append("acl", FileUtils.computeACL(item));
+                data.append("acl", new PathName(item).getAcl());
             }            
             result.append(item.getAbsolutePath(), data.toString());
         }
