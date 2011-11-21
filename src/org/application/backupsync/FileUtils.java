@@ -15,10 +15,13 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.AclEntry;
+import java.nio.file.attribute.AclFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.DosFileAttributes;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -32,7 +35,7 @@ import org.json.JSONObject;
  */
 public class FileUtils {
 
-    public static String hashFile(String aFile) throws NoSuchAlgorithmException, IOException {
+    public static String hashFile(File aFile) throws NoSuchAlgorithmException, IOException {
         FileInputStream fis;
         MessageDigest md;
         String hex;
@@ -62,44 +65,45 @@ public class FileUtils {
         return hexString.toString();
     }
     
-    public static void validateDir(String directory) throws FileNotFoundException {
-        File aDirectory;
+    public static void validateDir(File directory) throws FileNotFoundException {
 
-        aDirectory = new File(directory);
-
-        if (aDirectory == null) {
+        if (directory == null) {
             throw new IllegalArgumentException("Directory should not be null.");
         }
-        if (!aDirectory.exists()) {
-            throw new FileNotFoundException("Directory does not exist: " + aDirectory);
+        if (!directory.exists()) {
+            throw new FileNotFoundException("Directory does not exist: " + directory);
         }
-        if (!aDirectory.isDirectory()) {
-            throw new IllegalArgumentException("Is not a directory: " + aDirectory);
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException("Is not a directory: " + directory);
         }
-        if (!aDirectory.canRead()) {
-            throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
+        if (!directory.canRead()) {
+            throw new IllegalArgumentException("Directory cannot be read: " + directory);
         }
     }
 
-    public static List<File> walk(String aDirectory) throws IOException {
+    public static List<File> walk(File aDirectory) throws IOException {
         final List<File> result;
         Path start;
-        Path res;
 
         result = new ArrayList<>();
         
         validateDir(aDirectory);
 
-        start = FileSystems.getDefault().getPath(aDirectory);
-        res = Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+        start = FileSystems.getDefault().getPath(aDirectory.getAbsolutePath());
+        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 result.add(file.toFile());
                 return FileVisitResult.CONTINUE;
             }
+            
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException ex) {
+                result.add(dir.toFile());
+                return FileVisitResult.CONTINUE;
+            }
         });
-
         return result;
     }
 
@@ -136,12 +140,15 @@ public class FileUtils {
         return result;
     }
 
-    public static JSONObject computeACL(File fileName) {
+    public static JSONObject computeACL(File fileName) throws IOException, JSONException {
+        UserDefinedFileAttributeView acls;
         JSONObject result;
+
         result = new JSONObject();
-
-        // TODO: write code to retrieve ACL
-
+        if (Files.getFileStore(fileName.toPath()).supportsFileAttributeView(UserDefinedFileAttributeView.class)) {
+            acls = Files.getFileAttributeView(fileName.toPath(), UserDefinedFileAttributeView.class);
+            result.append("name", acls.toString());
+        }
         return result;
     }
 }

@@ -33,7 +33,7 @@ public class FetchFile {
         JSONObject data;
 
         result = new JSONObject();
-        for (File item : FileUtils.walk(directory)) {
+        for (File item : FileUtils.walk(new File(directory))) {
             if (item.isDirectory()) {
                 data = new JSONObject();
                 data.append("type", "directory");
@@ -41,10 +41,8 @@ public class FetchFile {
                 data = new JSONObject();
                 data.append("type", "file");
                 try {
-                    data.append("hash", FileUtils.hashFile(item.getAbsolutePath()));
-                } catch (NoSuchAlgorithmException ex) {
-                    data.append("hash", "");
-                } catch (IOException ex) {
+                    data.append("hash", FileUtils.hashFile(item));
+                } catch (NoSuchAlgorithmException | IOException ex) {
                     data.append("hash", "");
                 }
             }
