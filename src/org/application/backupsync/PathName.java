@@ -6,10 +6,12 @@ License       GPL version 2 (see GPL.txt for details)
  */
 package org.application.backupsync;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -54,14 +56,54 @@ public class PathName {
         }
     }
 
-    private void aclFromWindows() {
+    private JSONObject aclFromWindows() throws JSONException {
         // TODO: write code for Windows ACL extraction
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private void aclFromLinux() {
-        // TODO: write code for Linux ACL extraction
-        throw new UnsupportedOperationException("Not yet implemented");
+    private JSONObject aclFromLinux() throws JSONException, IOException, InterruptedException {
+        // NOTE: Need to manage case when external command fail
+        BufferedReader bri;
+        BufferedReader bre;
+        JSONObject groups;
+        JSONObject users;
+        JSONObject result;
+        Process p;
+        String line;
+
+        result = new JSONObject();
+        users = new JSONObject();
+        groups = new JSONObject();
+
+        p = Runtime.getRuntime().exec("getfacl " + this.file.getAbsolutePath());
+        bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        //bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+        while ((line = bri.readLine()) != null) {
+            if (line.startsWith("user") && !line.contains("::")) {
+                users.append("uid", line.split(":")[1]);
+                users.append("attrs", line.split(":")[2]);
+            } else if (line.startsWith("group") && !line.contains("::")) {
+                groups.append("gid", line.split(":")[1]);
+                groups.append("attrs", line.split(":")[2]);
+            }
+        }
+        bri.close();
+
+        /*
+        while ((line = bre.readLine()) != null) {
+            System.out.println(line);
+        }
+        bre.close();
+        */
+
+        p.waitFor();
+        //p.exitValue()
+
+        result.append("users", users);
+        result.append("groups", groups);
+
+        return result;
     }
 
     public String hash() throws NoSuchAlgorithmException, IOException {
@@ -153,19 +195,20 @@ public class PathName {
 
         return result;
     }
-    
-    public JSONObject getAcl() throws JSONException {
+
+    public JSONObject getAcl() throws JSONException, IOException {
         JSONObject result;
-        
-        result = new JSONObject();
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            aclFromWindows();
-        } else {
-            aclFromLinux();
+
+        try {
+            if (System.getProperty("os.name").startsWith("Windows")) {
+                result = aclFromWindows();
+            } else {
+                result = aclFromLinux();
+            }
+        } catch (InterruptedException ex) {
+            result = null;
         }
-        
-        // TODO: Populate the JSON object
-        
+
         return result;
     }
 }
