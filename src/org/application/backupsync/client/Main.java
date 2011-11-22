@@ -41,7 +41,6 @@ public class Main {
         Boolean exit;
         CommandLine cmd;
         CommandLineParser parser;
-        Serve serve;
 
         parser = new PosixParser();
 
@@ -56,20 +55,19 @@ public class Main {
             throw new ParseException("No port defined!");
         }
 
-        serve = new Serve(Integer.parseInt(cmd.getOptionValue("p")));
-        while (!exit) {
-            try {
-                exit = serve.go();
-            } catch (BindException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                exit = Boolean.TRUE;
-            } catch (UnknownHostException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (NullPointerException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        try (Serve serve = new Serve(Integer.parseInt(cmd.getOptionValue("p")));) {
+            serve.open();
+            while (!exit) {
+                exit = serve.listen();
             }
+        } catch (BindException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NullPointerException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

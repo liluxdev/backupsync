@@ -18,25 +18,23 @@ import org.application.backupsync.client.fetcher.FetchFile;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Serve {
+public class Serve implements AutoCloseable {
 
     private Integer port;
+    private ServerSocket socket;
 
     public Serve(Integer port) {
         this.port = port;
     }
 
-    public boolean go() throws UnknownHostException, IOException {
+    public Boolean listen() throws UnknownHostException, IOException {
         Boolean exit;
         BufferedReader in;
         PrintWriter out;
-        ServerSocket socket;
         Socket connection;
         JSONObject inJSON, outJSON, errJSON;
 
-        socket = new ServerSocket(port);
         exit = Boolean.FALSE;
-
         connection = socket.accept();
 
         in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -44,14 +42,16 @@ public class Serve {
 
         try {
             inJSON = new JSONObject(in.readLine());
-
-            if (inJSON.getString("command").equals("exit")) {
-                exit = Boolean.TRUE;
-            } else if (inJSON.getString("command").equals("list")) {
-                // TODO: write code for list files and directories (remember to calculate MD5 hash)
-                outJSON = new FetchFile(inJSON.getString("directory"), inJSON.getBoolean("acl")).getJSON();
-                outJSON.append("result", "ok");
-                out.println(outJSON.toString());
+            switch (inJSON.getString("command")) {
+                case "exit":
+                    exit = Boolean.TRUE;
+                    break;
+                case "list":
+                    // TODO: write code for list files and directories (remember to calculate MD5 hash)
+                    outJSON = new FetchFile(inJSON.getString("directory"), inJSON.getBoolean("acl")).getJSON();
+                    outJSON.append("result", "ok");
+                    out.println(outJSON.toString());
+                    break;
             }
         } catch (JSONException ex) {
             try {
@@ -84,8 +84,15 @@ public class Serve {
         in.close();
         out.close();
         connection.close();
-        socket.close();
-        
+
         return exit;
+    }
+
+    public void open() throws IOException {
+        this.socket = new ServerSocket(port);
+    }
+
+    public void close() throws IOException {
+        socket.close();
     }
 }
