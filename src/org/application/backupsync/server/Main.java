@@ -59,10 +59,7 @@ public class Main {
                                         this.cfg.get("general", "log_file"));
             Main.logger.addAppender(appender);
             Main.logger.setLevel(Level.toLevel(this.cfg.get("general", "log_level")));
-        } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
-            System.exit(2);
-        } catch (SecurityException ex) {
+        } catch (IOException | SecurityException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
             System.exit(2);
         }

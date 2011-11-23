@@ -14,7 +14,7 @@ public class Sync {
     private Wini cfg;
     
     public Sync(Wini cfg) {
-        
+        this.cfg = cfg;
     }
 
     /**
@@ -31,4 +31,7 @@ public class Sync {
         this.mode = mode;
     }
     
+    public void go() {
+        
+    }
 }
