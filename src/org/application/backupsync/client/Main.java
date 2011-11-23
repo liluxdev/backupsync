@@ -18,7 +18,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.application.backupsync.client.listener.Serve;
+import org.application.backupsync.client.net.Serve;
 
 public class Main {
 
