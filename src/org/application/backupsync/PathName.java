@@ -34,26 +34,10 @@ import org.json.JSONObject;
  */
 public class PathName {
 
-    private File file;
+    private Path path;
 
-    public PathName(File fileName) {
-        this.file = fileName;
-    }
-
-    private void validateDir() throws FileNotFoundException, IllegalArgumentException {
-
-        if (this.file == null) {
-            throw new IllegalArgumentException("Directory should not be null.");
-        }
-        if (!this.file.exists()) {
-            throw new FileNotFoundException("Directory does not exist: " + this.file.getAbsolutePath());
-        }
-        if (!this.file.isDirectory()) {
-            throw new IllegalArgumentException("Is not a directory: " + this.file.getAbsolutePath());
-        }
-        if (!this.file.canRead()) {
-            throw new IllegalArgumentException("Directory cannot be read: " + this.file.getAbsolutePath());
-        }
+    public PathName(Path aPath) {
+        this.path = aPath;
     }
 
     private JSONObject aclFromWindows() throws JSONException {
@@ -64,7 +48,7 @@ public class PathName {
     private JSONObject aclFromLinux() throws JSONException, IOException, InterruptedException {
         // NOTE: Need to manage case when external command fail
         BufferedReader bri;
-        BufferedReader bre;
+        //BufferedReader bre;
         JSONObject groups;
         JSONObject users;
         JSONObject result;
@@ -75,7 +59,7 @@ public class PathName {
         users = new JSONObject();
         groups = new JSONObject();
 
-        p = Runtime.getRuntime().exec("getfacl " + this.file.getAbsolutePath());
+        p = Runtime.getRuntime().exec("getfacl " + this.path.toString());
         bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
         //bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
@@ -115,7 +99,7 @@ public class PathName {
         int nread;
 
         md = MessageDigest.getInstance("MD5");
-        fis = new FileInputStream(this.file);
+        fis = new FileInputStream(this.path.toFile());
         dataBytes = new byte[4096];
         hexString = new StringBuffer();
 
@@ -137,29 +121,29 @@ public class PathName {
         return hexString.toString();
     }
 
-    public List<File> walk() throws IOException {
-        final List<File> result;
-        Path start;
+    public List<PathName> walk() throws IOException {
+        final List<PathName> result;
 
         result = new ArrayList<>();
 
-        this.validateDir();
+        if (Files.isReadable(this.path)) {
+            Files.walkFileTree(this.path, new SimpleFileVisitor<Path>() {
 
-        start = FileSystems.getDefault().getPath(this.file.getAbsolutePath());
-        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    result.add(new PathName(file));
+                    return FileVisitResult.CONTINUE;
+                }
 
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                result.add(file.toFile());
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException ex) {
-                result.add(dir.toFile());
-                return FileVisitResult.CONTINUE;
-            }
-        });
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException ex) {
+                    result.add(new PathName(dir));
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } else {
+            throw new IllegalArgumentException("Directory cannot be read: " + this.path.toString());
+        }
         return result;
     }
 
@@ -170,7 +154,7 @@ public class PathName {
         PosixFileAttributes posixAttr;
 
         result = new JSONObject();
-        attr = Files.readAttributes(this.file.toPath(), BasicFileAttributes.class);
+        attr = Files.readAttributes(this.path, BasicFileAttributes.class);
 
         result.append("ctime", attr.creationTime().toMillis());
         result.append("mtime", attr.lastModifiedTime().toMillis());
@@ -178,14 +162,14 @@ public class PathName {
         result.append("size", attr.size());
 
         if (System.getProperty("os.name").startsWith("Windows")) {
-            dosAttr = Files.readAttributes(this.file.toPath(), DosFileAttributes.class);
+            dosAttr = Files.readAttributes(this.path, DosFileAttributes.class);
 
             result.append("dos:archive", dosAttr.isArchive());
             result.append("dos:hidden", dosAttr.isHidden());
             result.append("dos:readonly", dosAttr.isReadOnly());
             result.append("dos:system", dosAttr.isSystem());
         } else {
-            posixAttr = Files.readAttributes(this.file.toPath(), PosixFileAttributes.class);
+            posixAttr = Files.readAttributes(this.path, PosixFileAttributes.class);
 
             result.append("posix:symlink", posixAttr.isSymbolicLink());
             result.append("posix:owner", posixAttr.owner());
@@ -210,5 +194,13 @@ public class PathName {
         }
 
         return result;
+    }
+    
+    public Boolean isDirectory() throws IllegalArgumentException, FileNotFoundException {
+        return Files.isDirectory(this.path);
+    }
+    
+    public String getAbsolutePath() {
+        return this.path.toString();
     }
 }

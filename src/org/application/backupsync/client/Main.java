@@ -60,11 +60,7 @@ public class Main {
             while (!exit) {
                 exit = serve.listen();
             }
-        } catch (BindException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NullPointerException ex) {
+        } catch (BindException | UnknownHostException | NullPointerException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
