@@ -7,12 +7,10 @@ License       GPL version 2 (see GPL.txt for details)
 package org.application.backupsync;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -100,14 +98,18 @@ public class PathName {
 
         md = MessageDigest.getInstance("MD5");
         fis = new FileInputStream(this.path.toFile());
-        dataBytes = new byte[4096];
+        dataBytes = new byte[65536];
         hexString = new StringBuffer();
 
         nread = 0;
-        while ((nread = fis.read(dataBytes)) != -1) {
-            md.update(dataBytes, 0, nread);
+        try {
+            while ((nread = fis.read(dataBytes)) != -1) {
+                md.update(dataBytes, 0, nread);
+            }
+        } finally {
+            fis.close();
         }
-
+        
         byte[] mdbytes = md.digest();
 
         for (int i = 0; i < mdbytes.length; i++) {
@@ -117,7 +119,7 @@ public class PathName {
             }
             hexString.append(hex);
         }
-
+        
         return hexString.toString();
     }
 
