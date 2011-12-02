@@ -21,42 +21,59 @@ import org.json.JSONObject;
 public class Serve implements AutoCloseable {
 
     private Integer port;
-    private BufferedReader in;
     private ServerSocket socket;
-    private PrintWriter out;
 
     public Serve(Integer port) {
         this.port = port;
     }
 
+    private void cmdListFile(Socket connection, String directory, Boolean acl) throws JSONException, IOException {
+        JSONObject result;
+        PrintWriter out;
+        
+        out = new PrintWriter(connection.getOutputStream(), true);
+        result = new FileList(directory, acl).get();
+        result.append("result", "ok");
+        out.println(result.toString());
+    }
+    
+    private void cmdGetFile(Socket connection, String fileName) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    private void cmdError(Socket connection, String message) throws IOException, JSONException {
+        JSONObject result;
+        PrintWriter out;
+        
+        out = new PrintWriter(connection.getOutputStream(), true);
+        result = new JSONObject();
+        result.append("result", "error");
+        result.append("message", message);
+        out.println(result.toString());
+    }
     public Boolean listen() throws UnknownHostException, IOException {
         Boolean exit;
-
+        BufferedReader in;
         Socket connection;
-        JSONObject inJSON, outJSON, errJSON;
+        JSONObject inJSON;
 
         exit = Boolean.FALSE;
         connection = socket.accept();
 
-        this.in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        this.out = new PrintWriter(connection.getOutputStream(), true);
-
+        in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         try {
-            inJSON = new JSONObject(this.in.readLine());
+            inJSON = new JSONObject(in.readLine());
             switch (inJSON.getString("context")) {
                 case "file":
                     switch (inJSON.getString("command")) {
                         case "list":
-                            // TODO: write code for list files and directories (remember to calculate MD5 hash)
-                            outJSON = new FileList(inJSON.getString("directory"), inJSON.getBoolean("acl")).get();
-                            outJSON.append("result", "ok");
-                            this.out.println(outJSON.toString());
+                            this.cmdListFile(connection, inJSON.getString("directory"), inJSON.getBoolean("acl"));
+                            break;
+                        case "get":
+                            this.cmdGetFile(connection, inJSON.getString("file"));
                             break;
                         default:
-                            errJSON = new JSONObject();
-                            errJSON.append("result", "error");
-                            errJSON.append("message", "Command not found");
-                            this.out.println(errJSON.toString());
+                            this.cmdError(connection, "Command not found");
                             break;
                     }
                     break;
@@ -66,35 +83,24 @@ public class Serve implements AutoCloseable {
                             exit = Boolean.TRUE;
                             break;
                         default:
-                            errJSON = new JSONObject();
-                            errJSON.append("result", "error");
-                            errJSON.append("message", "Command not found");
-                            this.out.println(errJSON.toString());
+                            this.cmdError(connection, "Command not found");
                             break;
                     }
                     break;
                 default:
-                    errJSON = new JSONObject();
-                    errJSON.append("result", "error");
-                    errJSON.append("message", "Context not found");
-                    this.out.println(errJSON.toString());
+                    this.cmdError(connection, "Context not found");
                     break;
             }
         } catch (JSONException | FileNotFoundException | IllegalArgumentException | NullPointerException ex) {
             try {
-                errJSON = new JSONObject();
-                errJSON.append("result", "error");
-                
                 if (ex instanceof FileNotFoundException ||
                     ex instanceof IllegalArgumentException) {
-                    errJSON.append("message", "File or path not found");
+                    this.cmdError(connection, "File or path not found");
                 } else if (ex instanceof NullPointerException) {
-                    errJSON.append("message", "Buffer error");
+                    this.cmdError(connection, "Buffer error");
                 } else {
-                    errJSON.append("message", "Malformed command");
+                    this.cmdError(connection, "Malformed command");
                 }
-                errJSON.append("error", ex.getCause());
-                this.out.println(errJSON.toString());
             } catch (JSONException ex2) {
             }
         }
@@ -108,8 +114,6 @@ public class Serve implements AutoCloseable {
     }
 
     public void close() throws IOException {
-        this.in.close();
-        this.out.close();
         this.socket.close();
     }
 }
