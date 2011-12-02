@@ -14,7 +14,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import org.application.backupsync.client.fetcher.FetchFile;
+import org.application.backupsync.client.commands.FileList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,25 +38,25 @@ public class Serve implements AutoCloseable {
         exit = Boolean.FALSE;
         connection = socket.accept();
 
-        in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        out = new PrintWriter(connection.getOutputStream(), true);
+        this.in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        this.out = new PrintWriter(connection.getOutputStream(), true);
 
         try {
-            inJSON = new JSONObject(in.readLine());
+            inJSON = new JSONObject(this.in.readLine());
             switch (inJSON.getString("context")) {
                 case "file":
                     switch (inJSON.getString("command")) {
                         case "list":
                             // TODO: write code for list files and directories (remember to calculate MD5 hash)
-                            outJSON = new FetchFile(inJSON.getString("directory"), inJSON.getBoolean("acl")).getJSON();
+                            outJSON = new FileList(inJSON.getString("directory"), inJSON.getBoolean("acl")).get();
                             outJSON.append("result", "ok");
-                            out.println(outJSON.toString());
+                            this.out.println(outJSON.toString());
                             break;
                         default:
                             errJSON = new JSONObject();
                             errJSON.append("result", "error");
                             errJSON.append("message", "Command not found");
-                            out.println(errJSON.toString());
+                            this.out.println(errJSON.toString());
                             break;
                     }
                     break;
@@ -69,7 +69,7 @@ public class Serve implements AutoCloseable {
                             errJSON = new JSONObject();
                             errJSON.append("result", "error");
                             errJSON.append("message", "Command not found");
-                            out.println(errJSON.toString());
+                            this.out.println(errJSON.toString());
                             break;
                     }
                     break;
@@ -77,7 +77,7 @@ public class Serve implements AutoCloseable {
                     errJSON = new JSONObject();
                     errJSON.append("result", "error");
                     errJSON.append("message", "Context not found");
-                    out.println(errJSON.toString());
+                    this.out.println(errJSON.toString());
                     break;
             }
         } catch (JSONException | FileNotFoundException | IllegalArgumentException | NullPointerException ex) {
@@ -94,7 +94,7 @@ public class Serve implements AutoCloseable {
                     errJSON.append("message", "Malformed command");
                 }
                 errJSON.append("error", ex.getCause());
-                out.println(errJSON.toString());
+                this.out.println(errJSON.toString());
             } catch (JSONException ex2) {
             }
         }

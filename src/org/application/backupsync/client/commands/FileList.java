@@ -5,7 +5,7 @@
     License       GPL version 2 (see GPL.txt for details)
  */
 
-package org.application.backupsync.client.fetcher;
+package org.application.backupsync.client.commands;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,11 +19,11 @@ import org.json.JSONObject;
  *
  * @author ebianchi
  */
-public class FetchFile {
+public class FileList {
     
     private JSONObject json;
 
-    public FetchFile(String aDirectory, Boolean acl) throws JSONException, IOException {
+    public FileList(String aDirectory, Boolean acl) throws JSONException, IOException {
         this.json = new JSONObject();
         this.json = this.list(aDirectory, acl);
     }
@@ -56,7 +56,7 @@ public class FetchFile {
         return result;
     }
     
-    public JSONObject getJSON() {
+    public JSONObject get() {
         return this.json;
     }
 }
