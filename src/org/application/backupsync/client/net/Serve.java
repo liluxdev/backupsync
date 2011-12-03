@@ -51,6 +51,37 @@ public class Serve implements AutoCloseable {
         result.append("message", message);
         out.println(result.toString());
     }
+
+    private void contextFile(Socket connection, JSONObject command) throws JSONException, IOException {
+        switch (command.getString("name")) {
+            case "list":
+                this.cmdListFile(connection, command.getString("directory"), command.getBoolean("acl"));
+                break;
+            case "get":
+                this.cmdGetFile(connection, command.getString("file"));
+                break;
+            default:
+                this.cmdError(connection, "Command not found");
+                break;
+        }
+    }
+
+    private Boolean contextSystem(Socket connection, JSONObject command) throws JSONException, IOException {
+        Boolean exit;
+        
+        switch (command.getString("name")) {
+            case "exit":
+                exit = Boolean.TRUE;
+                break;
+            default:
+                this.cmdError(connection, "Command not found");
+                exit = Boolean.FALSE;
+                break;
+        }
+        
+        return exit;
+    }
+
     public Boolean listen() throws UnknownHostException, IOException {
         Boolean exit;
         BufferedReader in;
@@ -65,27 +96,10 @@ public class Serve implements AutoCloseable {
             inJSON = new JSONObject(in.readLine());
             switch (inJSON.getString("context")) {
                 case "file":
-                    switch (inJSON.getString("command")) {
-                        case "list":
-                            this.cmdListFile(connection, inJSON.getString("directory"), inJSON.getBoolean("acl"));
-                            break;
-                        case "get":
-                            this.cmdGetFile(connection, inJSON.getString("file"));
-                            break;
-                        default:
-                            this.cmdError(connection, "Command not found");
-                            break;
-                    }
+                    this.contextFile(connection, inJSON.getJSONObject("command"));
                     break;
                 case "system":
-                    switch (inJSON.getString("command")) {
-                        case "exit":
-                            exit = Boolean.TRUE;
-                            break;
-                        default:
-                            this.cmdError(connection, "Command not found");
-                            break;
-                    }
+                    exit = this.contextSystem(connection, inJSON.getJSONObject("command"));
                     break;
                 default:
                     this.cmdError(connection, "Context not found");
