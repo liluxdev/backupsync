@@ -19,11 +19,11 @@ import org.json.JSONObject;
  *
  * @author ebianchi
  */
-public class FileList {
+public class CommandFile {
     
     private JSONObject json;
 
-    public FileList(String aDirectory, Boolean acl) throws JSONException, IOException {
+    public CommandFile(String aDirectory, Boolean acl) throws JSONException, IOException {
         this.json = new JSONObject();
         this.json = this.list(aDirectory, acl);
     }

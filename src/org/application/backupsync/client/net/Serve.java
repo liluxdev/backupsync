@@ -14,7 +14,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import org.application.backupsync.client.commands.FileList;
+import org.application.backupsync.client.commands.CommandFile;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,7 +32,7 @@ public class Serve implements AutoCloseable {
         PrintWriter out;
         
         out = new PrintWriter(connection.getOutputStream(), true);
-        result = new FileList(directory, acl).get();
+        result = new CommandFile(directory, acl).get();
         result.append("result", "ok");
         out.println(result.toString());
     }
