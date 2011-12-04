@@ -5,7 +5,7 @@
     License       GPL version 2 (see GPL.txt for details)
  */
 
-package org.application.backupsync.client.commands;
+package org.application.backupsync.client.context.commands;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

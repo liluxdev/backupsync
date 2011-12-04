@@ -14,7 +14,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import org.application.backupsync.client.commands.CommandFile;
+import org.application.backupsync.client.context.commands.CommandFile;
 import org.json.JSONException;
 import org.json.JSONObject;
 
