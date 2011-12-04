@@ -1,7 +1,10 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+    Copyright (C) 2011 Enrico Bianchi (enrico.bianchi@ymail.com)
+    Project       BackupSYNC
+    Description   A backup system
+    License       GPL version 2 (see GPL.txt for details)
  */
+
 package org.application.backupsync.client.context;
 
 import java.io.IOException;
@@ -11,10 +14,6 @@ import org.application.backupsync.client.context.commands.CommandFile;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- *
- * @author enrico
- */
 public class ContextFile extends AbstractContext {
     public ContextFile(Socket connection) {
         this.connection = connection;
