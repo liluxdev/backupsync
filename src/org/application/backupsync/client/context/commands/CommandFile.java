@@ -50,7 +50,7 @@ public class CommandFile {
             
             if (acl) {
                 data.append("acl", item.getAcl());
-            }            
+            }
             result.append(item.getAbsolutePath(), data.toString());
         }
         return result;
