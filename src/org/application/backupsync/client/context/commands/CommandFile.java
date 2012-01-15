@@ -27,18 +27,18 @@ public class CommandFile {
         this.json = new JSONObject();
         this.json = this.list(aDirectory, acl);
     }
-    
+
     private JSONObject list(String directory, Boolean acl) throws JSONException, FileNotFoundException, IOException {
         JSONObject result;
         JSONObject data;
 
         result = new JSONObject();
         for (PathName item : new PathName(Paths.get(directory)).walk()) {
+            data = new JSONObject();
+
             if (item.isDirectory()) {
-                data = new JSONObject();
                 data.append("type", "directory");
             } else {
-                data = new JSONObject();
                 data.append("type", "file");
                 try {
                     data.append("hash", item.hash());
@@ -47,15 +47,15 @@ public class CommandFile {
                 }
             }
             data.append("attrs", item.getAttrs());
-            
+
             if (acl) {
                 data.append("acl", item.getAcl());
-            }            
+            }
             result.append(item.getAbsolutePath(), data.toString());
         }
         return result;
     }
-    
+
     public JSONObject get() {
         return this.json;
     }
