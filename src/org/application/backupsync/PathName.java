@@ -119,7 +119,8 @@ public class PathName {
             }
             hexString.append(hex);
         }
-        
+        fis.close();
+
         return hexString.toString();
     }
 
