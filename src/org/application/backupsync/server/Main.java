@@ -25,7 +25,6 @@ import org.ini4j.Wini;
 
 public class Main {
     private Options opts;
-    private String mode;
     private Wini cfg;
     
     public static final String VERSION = "1.0";
@@ -74,8 +73,8 @@ public class Main {
             this.cfg = new Wini();
             this.cfg.load(new FileInputStream(cfgFile));
         } catch (IOException ex) {
-            Main.logger.error(null, ex);
-            System.exit(1);
+            Logger.getLogger(Main.class.getName()).log(Level.FATAL, null, ex);
+            System.exit(2);
         }
     }
 
@@ -84,11 +83,12 @@ public class Main {
         formatter.printHelp("BackupSYNC", this.opts);
         System.exit(0);
     }
-    
+
     public void go(String[] args) throws ParseException {
         CommandLine cmd;
         CommandLineParser parser;
-        
+        Sync sync;
+
         parser = new PosixParser();
         cmd = parser.parse(this.opts, args);
 
@@ -103,20 +103,24 @@ public class Main {
             this.setCfg(cmd.getOptionValue("cfg"));
         }
 
+        sync = new Sync(this.cfg);
+
         if (cmd.hasOption("H")) {
-            this.mode = "hour";
+            sync.setMode("hour");
         }
         else if (cmd.hasOption("D")) {
-            this.mode = "day";
+            sync.setMode("day");
         } else if (cmd.hasOption("W")) {
-            this.mode = "week";
+            sync.setMode("week");
         }
         else if (cmd.hasOption("M")) {
-            this.mode = "month";
+            sync.setMode("month");
         }
-            
+
         this.setLog();
         Main.logger.info("BackupSYNC " + VERSION);
+
+        sync.go();
     }
     
     public static void main(String[] args) {
