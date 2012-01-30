@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import org.application.backupsync.client.context.commands.CommandFile;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,11 +38,20 @@ public class ContextFile extends AbstractContext {
     public Boolean parse(JSONObject command) throws JSONException, IOException {
         Boolean exit;
         ContextError error;
+        JSONArray paths;
 
         exit = Boolean.FALSE;
         switch (command.getString("name")) {
             case "list":
-                this.cmdListFile(command.getString("directory"), command.getBoolean("acl"));
+                paths = command.getJSONArray("directory");
+                
+                if (paths.length() == 0) {
+                    throw new JSONException("List not definied");
+                }
+                
+                for (int item = 0; item <= paths.length(); item++) {
+                    this.cmdListFile(paths.getString(item), command.getBoolean("acl"));
+                }
                 break;
             case "get":
                 this.cmdGetFile(command.getString("file"));
