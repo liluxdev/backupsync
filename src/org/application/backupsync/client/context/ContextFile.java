@@ -49,7 +49,7 @@ public class ContextFile extends AbstractContext {
                     throw new JSONException("List not definied");
                 }
                 
-                for (int item = 0; item <= paths.length(); item++) {
+                for (int item = 0; item < paths.length(); item++) {
                     this.cmdListFile(paths.getString(item), command.getBoolean("acl"));
                 }
                 break;
